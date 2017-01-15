@@ -2,6 +2,7 @@
 
 from scan_index import ContractIndexScraper
 from scan_code import ContractCodeScraper
+from scan_txns import ContractTxnScraper
 
 import sys,argparse
 
@@ -29,6 +30,15 @@ def main():
         scraper = ContractIndexScraper();
         scraper.get_pages(npages);
         scraper.db.write();
+
+    elif(args.subparser_name == "scan" and args.what == "txns"):
+        scraper = ContractTxnScraper();
+        if(args.contract != None):
+            scraper.scrape_code_of_contract(args.contract);
+        else:
+            ncontracts= int(args.num_requests);
+            scraper.scrape_code_of_contracts(ncontracts);
+
 
     elif(args.subparser_name == "scan" and args.what == "code"):
         scraper = ContractCodeScraper();
