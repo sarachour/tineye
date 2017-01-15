@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-from scrape_index import ContractIndexScraper
-from scrape_code import ContractCodeScraper
+from scan_index import ContractIndexScraper
+from scan_code import ContractCodeScraper
 
 import sys,argparse
 
