@@ -23,7 +23,7 @@ class IntTransaction:
 
     @sender.setter
     def sender(self,v):
-        return self._sender = v;
+        self._sender = v;
 
     @property
     def value(self):
@@ -31,7 +31,7 @@ class IntTransaction:
 
     @value.setter
     def value(self,v):
-        return self._value = v;
+        self._value = v;
 
 
 class Transfer:

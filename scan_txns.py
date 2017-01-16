@@ -5,7 +5,7 @@ from contract import *
 import sys
 
 
-class ContractCodeScraper:
+class ContractTxnScraper:
 
     def __init__(self):
         self._db = ContractDatabase();
@@ -43,7 +43,7 @@ class ContractCodeScraper:
                     return row;
         return None;
 
-    def scrape_code_of_contract(self,addr):
+    def scrape_txns_of_contract(self,addr):
         contract = self.db.contracts[addr];
         url = "https://etherscan.io/txs?a="+addr;
 
@@ -57,7 +57,7 @@ class ContractCodeScraper:
         txns = self.db.txns(addr);
         self.db.write_txns(addr);
 
-    def scrape_code_of_contracts(self,nscrapes):
+    def scrape_txns_of_contracts(self,nscrapes):
         scrape_count = 0;
         for addr in self.db.contracts:
             contract = self.db.contracts[addr];

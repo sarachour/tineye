@@ -34,10 +34,10 @@ def main():
     elif(args.subparser_name == "scan" and args.what == "txns"):
         scraper = ContractTxnScraper();
         if(args.contract != None):
-            scraper.scrape_code_of_contract(args.contract);
+            scraper.scrape_txns_of_contract(args.contract);
         else:
             ncontracts= int(args.num_requests);
-            scraper.scrape_code_of_contracts(ncontracts);
+            scraper.scrape_txns_of_contracts(ncontracts);
 
 
     elif(args.subparser_name == "scan" and args.what == "code"):

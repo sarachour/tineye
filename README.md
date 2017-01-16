@@ -3,4 +3,4 @@ ethereum crawler
 
 # Dependencies
 
-pip install plotly cfscrape beautifulsoup
+pip install plotly cfscrape beautifulsoup jsonpickle
