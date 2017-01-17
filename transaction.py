@@ -173,14 +173,14 @@ class Transaction:
         repr = "[tx]";
         repr += self.txhash + "("+str(self.confirms)+" confirms)\n";
         if self.failed:
-            repr += "[FAILED] "+self.reason+"\n";
+            repr += "[FAILED] "+str(self.reason)+"\n";
         repr += "time: " + strftime("%b/%d/%Y %H:%M:%S %Z",self.time) + "\n";
         repr += "value: "+ str(self.value) + "\n"
         repr += str(self.sender) + "->" + str(self.to) + "\n"
         repr += "gas: "+str(self.gas_used) + "/" + str(self.gas);
         repr += " ("+str(self.gas_price)+" ether/gas)\n";
-        repr += "args:\n";
-        repr += self.args +"\n";
+        #repr += "args:\n";
+        #repr += self.args +"\n";
         repr += "-- Internal Transactions --\n"
         for k in self._internal:
             itxn = self._internal[k];
@@ -222,14 +222,15 @@ class ContractTxns:
             f.write(text);
 
     def read(self,dir):
-        path = dir+"/txns/"+self._addr;
+        path = dir+"/txns/"+self.addr;
         if not os.path.exists(path):
             self._exists = False;
+            return;
         try:
             with open(path+"/txns.json",'r') as f:
                 self._exists = True;
                 text = f.read();
                 self = jsonpickle.decode(text);
-        except IOError:
+        except Exception:
             self._exists = False;
             return;

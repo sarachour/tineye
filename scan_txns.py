@@ -123,7 +123,7 @@ class ContractTxnScraper:
 
         failure = self.get_value_from_row_that_contains(toplevel,"Error encountered during contract execution");
         if failure != None:
-            txn.reason = failure.select("b")[0];
+            txn.reason = self.get_contents(failure.select("b")[0]);
             txn.failed = True
 
         gasused = self.get_value_from_row_that_contains(toplevel,"Gas Used By Transaction:");
@@ -149,7 +149,7 @@ class ContractTxnScraper:
                 itxn.value = self.extract_float(valstr);
                 txn.add_internal_txn(itxn);
                 
-
+        print(str(txn));
         return txn;
 
     def scrape_txns_of_contract(self,addr):
@@ -157,24 +157,25 @@ class ContractTxnScraper:
         txns = self.db.details(addr).txns;
     
         print(": "+gurl);
-        npages = 500;
-        try:
-            for page in range(1,npages):
-                print("=== Page "+str(page)+" ===")
-                url = "https://etherscan.io/txs?a="+addr+"&p="+str(page);
-                page = self._scraper.get(url).content;
-                dom = BeautifulSoup(page, "html.parser");
-                tables = dom.select("tbody");
+        npages = 999999;
+        for page in range(1,npages):
+            print("=== Page "+str(page)+" ===")
+            url = "https://etherscan.io/txs?a="+addr+"&p="+str(page);
+            page = self._scraper.get(url).content;
+            dom = BeautifulSoup(page, "html.parser");
+            tables = dom.select("tbody");
 
-                for row in tables[0].select("tr"):
-                    cols = row.select("td");
-                    txhash = self.get_contents(cols[0],"");
-                    print("-> "+txhash);
-                    txn = Transaction(txhash);
-                    self.scrape_txn_details(txn);
-                    txns.add_txn(txn);
-        except Exception:
-            ()
+            for row in tables[0].select("tr"):
+                cols = row.select("td");
+                txhash = self.get_contents(cols[0],"");
+                print("-> "+txhash);
+                if(txhash == ""):
+                    self.db.write_txns(addr);
+                    return;
+                    
+                txn = Transaction(txhash);
+                self.scrape_txn_details(txn);
+                txns.add_txn(txn);
 
         self.db.write_txns(addr);
 
