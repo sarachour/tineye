@@ -105,7 +105,7 @@ class ContractTxnScraper:
 
         tofld = self.get_value_from_row_that_contains(toplevel,"To:");
         if tofld != None:
-            txn.to = self.get_contents(fromfld.select("a")[0]);
+            txn.to = self.get_contents(tofld.select("a")[0]);
 
         value = self.get_value_from_row_that_contains(toplevel,"Value:");
         if value != None:
