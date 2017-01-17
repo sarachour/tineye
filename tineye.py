@@ -54,7 +54,7 @@ def main():
         visualizer = SummaryVis();
         viskind = args.kind;
         visout = args.output;
-        visualizer(viskind,visout);
+        visualizer.execute(viskind,visout);
 
     else:
         print("unimplemented");
