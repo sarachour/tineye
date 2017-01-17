@@ -10,7 +10,7 @@ class SummaryVis:
     def db():
         return self._db
 
-    def wallet_breakdown(output):
+    def wallet_breakdown(self,output):
         vls = [];
         for addr in self.db.contracts:
             contract = self.db.contracts[addr]
@@ -20,19 +20,7 @@ class SummaryVis:
         fig.safefig(output);
         raise("todo: wallet breakdown")
 
-    def transaction_count_breakdown(contract_db):
-        raise("todo: transaction count breakdown")
-
-    def assembly_length_breakdown(contract_db):
-        raise("todo")
-
-    def source_avail_breakdown(contract_db):
-        raise("todo");
-
-    def source_length_breakdown(contract_db):
-        raise("todo");
-
-    def execute(name,output):
+    def execute(self,name,output):
         if name == "wallet":
             self.wallet_breakdown(output);
 
