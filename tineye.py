@@ -5,6 +5,7 @@ from scan_code import ContractCodeScraper
 from scan_txns import ContractTxnScraper
 
 import sys,argparse
+from visualize import *
 
 def main():
     parser = argparse.ArgumentParser();
@@ -18,9 +19,10 @@ def main():
     scan.add_argument("-c","--contract");
 
 
-    look = subparsers.add_parser('look');
+    look = subparsers.add_parser('inspect');
     look.add_argument("-w","--what");
     look.add_argument("-k","--kind");
+    look.add_argument("-o","--output");
 
     scrape_txns = subparsers.add_parser('scrape-txns');
 
@@ -48,11 +50,11 @@ def main():
             ncontracts= int(args.num_requests);
             scraper.scrape_code_of_contracts(ncontracts);
 
-    elif(args.subparser_name == "look" and args.what == "summary"):
-        db = ContractDatabase();
+    elif(args.subparser_name == "inspect" and args.what == "summary"):
         visualizer = SummaryVis();
         viskind = args.kind;
-        visualizer(viskind,db);
+        visout = args.output;
+        visualizer(viskind,visout);
 
     else:
         print("unimplemented");
