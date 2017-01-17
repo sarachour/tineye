@@ -1,5 +1,6 @@
 import jsonpickle
 import os
+from time import strftime
 
 class IntTransaction:
     def __init__(self,name):
@@ -54,6 +55,9 @@ class Transaction:
         self._txhash = hashv;
         self._internal = {};
         self._transfers = {};
+        self._value = None;
+        self.gas = self.gas_used = self.gas_price = None;
+        self.to = self.sender = None;
 
     @property
     def txhash(self):
@@ -153,6 +157,27 @@ class Transaction:
 
     def add_recip(self,tfr):
         self._transfers[tfr.to] = tfr;
+
+    def __str__(self):
+        repr = "[tx]";
+        repr += self.txhash + "("+str(self.confirms)+" confirms)\n";
+        repr += "time: " + strftime("%b/%d/%Y %H:%M:%S %Z",self.time) + "\n";
+        repr += "value: "+ str(self.value) + "\n"
+        repr += str(self.sender) + "->" + str(self.to) + "\n"
+        repr += "gas: "+str(self.gas_used) + "/" + str(self.gas);
+        repr += " ("+str(self.gas_price)+" ether/gas)\n";
+        repr += "-- Transfers --\n"
+        for k in self._transfers:
+            tfr = self._transfers[k];
+            repr += "  "+str(tfr)+"\n";
+
+        repr += "-- Internal Transactions --\n"
+        for k in self._internal:
+            itxn = self._internal[k];
+            repr += " "+str(itxn)+"\n";
+
+
+        return repr
 
 class ContractTxns:
 
