@@ -127,7 +127,7 @@ class ContractCodeScraper:
                 print("scrape please: "+addr+" -> "+str(len(code_divs)));
             return;
 
-        self.db.write_details(addr);
+        self.db.write_code(addr);
 
     def scrape_code_of_contracts(self,nscrapes):
         scrape_count = 0;

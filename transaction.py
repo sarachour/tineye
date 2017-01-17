@@ -2,9 +2,10 @@ import jsonpickle
 import os
 from time import strftime
 
-class IntTransaction:
+class InternalTransaction:
     def __init__(self,name):
-        self._name;
+        self._name = name;
+        self.sender = self.to = self.value = None;
 
     @property
     def name(self):
@@ -34,30 +35,42 @@ class IntTransaction:
     def value(self,v):
         self._value = v;
 
+    def __str__(self):
+        repr = "[itx] "+str(self.name)+" ("+str(self.value)+" Ether)\n"
+        repr += str(self.sender)+" -> "+str(self.to);
+        return repr;
+        
 
-class Transfer:
-
-    def __init__(self,recip,val):
-        self._to = recip;
-        self._value = val;
-
-    @property
-    def value(self):
-        return self._value;
-
-    @property
-    def to(self):
-        return self._to;
 
 class Transaction:
 
     def __init__(self,hashv):
         self._txhash = hashv;
         self._internal = {};
-        self._transfers = {};
-        self._value = None;
+        self.value = None;
+        self.confirms = None;
+        self.failed = False;
+        self.reason = None;
         self.gas = self.gas_used = self.gas_price = None;
         self.to = self.sender = None;
+        self.time = self.args = None;
+
+    @property
+    def reason(self):
+        return self._reason;
+
+    @reason.setter
+    def reason(self, v):
+        self._reason = v;
+
+
+    @property
+    def failed(self):
+        return self._failed;
+
+    @failed.setter
+    def failed(self, v):
+        self._failed = v;
 
     @property
     def txhash(self):
@@ -145,32 +158,29 @@ class Transaction:
         self._confirms = v;
 
     @property
-    def input(self):
-        return self._input;
+    def args(self):
+        return self._args;
 
-    @input.setter
-    def input(self,v):
-        self._input = v;
+    @args.setter
+    def args(self,v):
+        self._args = v;
 
-    def add_int_txn(self,txn):
+    def add_internal_txn(self,txn):
         self._internal[txn.name] = txn;
 
-    def add_recip(self,tfr):
-        self._transfers[tfr.to] = tfr;
 
     def __str__(self):
         repr = "[tx]";
         repr += self.txhash + "("+str(self.confirms)+" confirms)\n";
+        if self.failed:
+            repr += "[FAILED] "+self.reason+"\n";
         repr += "time: " + strftime("%b/%d/%Y %H:%M:%S %Z",self.time) + "\n";
         repr += "value: "+ str(self.value) + "\n"
         repr += str(self.sender) + "->" + str(self.to) + "\n"
         repr += "gas: "+str(self.gas_used) + "/" + str(self.gas);
         repr += " ("+str(self.gas_price)+" ether/gas)\n";
-        repr += "-- Transfers --\n"
-        for k in self._transfers:
-            tfr = self._transfers[k];
-            repr += "  "+str(tfr)+"\n";
-
+        repr += "args:\n";
+        repr += self.args +"\n";
         repr += "-- Internal Transactions --\n"
         for k in self._internal:
             itxn = self._internal[k];
@@ -203,6 +213,23 @@ class ContractTxns:
 
     def write(self,dir):
         path = dir+"/txns/"+self._addr;
+        if not os.path.exists(path):
+            os.makedirs(path);
+
+        with open(path+"/txns.json",'w') as f:
+            self._exists = True;
+            text = jsonpickle.encode(self);
+            f.write(text);
 
     def read(self,dir):
         path = dir+"/txns/"+self._addr;
+        if not os.path.exists(path):
+            self._exists = False;
+        try:
+            with open(path+"/txns.json",'r') as f:
+                self._exists = True;
+                text = f.read();
+                self = jsonpickle.decode(text);
+        except IOError:
+            self._exists = False;
+            return;

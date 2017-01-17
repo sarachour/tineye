@@ -88,10 +88,12 @@ class ContractDetails:
          self._code_exist = self._info.exists;
          self._txns_exist = self._txns.exists;
 
-    def write(self,dir):
+    def write_code(self,dir):
         self._info.write(dir);
         self._code.write(dir);
 
+    def write_txns(self,dir):
+        self._txns.write(dir);
 
 class ContractDatabase:
     def __init__(self):
@@ -104,9 +106,14 @@ class ContractDatabase:
     def read(self):
         try:
             with open(self._dbdir+"/"+self._dbfile,"r") as f:
+                currline = 0;
                 for line in f:
+                    if currline % 1000 == 0:
+                        print(str(currline));
+
                     ctr = jsonpickle.decode(line);
                     self.add_contract(ctr);
+                    currline += 1;
         except IOError:
             return;
 
@@ -118,8 +125,11 @@ class ContractDatabase:
                 f.write(text+"\n");
             f.close();
 
-    def write_details(self,addr):
-        self._details[addr].write(self._dbdir);
+    def write_txns(self,addr):
+        self._details[addr].write_txns(self._dbdir);
+
+    def write_code(self,addr):
+        self._details[addr].write_code(self._dbdir);
 
     def read_details(self,addr):
         self._details[addr].read(self._dbdir);
