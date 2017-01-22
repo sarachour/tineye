@@ -133,7 +133,7 @@ class ContractCodeScraper:
         scrape_count = 0;
         for addr in self.db.contracts:
             contract = self.db.contracts[addr];
-            if(self.db.details(addr).exists == False):
+            if(self.db.details(addr).info.exists == False):
                 self.scrape_code_of_contract(addr);
                 scrape_count += 1;
                 if(scrape_count > nscrapes):

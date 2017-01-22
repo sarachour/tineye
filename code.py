@@ -4,15 +4,16 @@ import os
 class ContractInfo:
     def __init__(self,addr):
         self._addr = addr;
-        self._exists = False;
-        self._txs = 0;
-        self._int_txs = 0;
-        self._name = None;
-        self._mined = 0;
-        self._compiler_version = None;
-        self._creator = None;
-        self._creation_txn = None;
-        self._optimized = None;
+        self.exists = False;
+        self.txns = 0;
+        self.int_txns = 0;
+        self.name = None;
+        self.mined = 0;
+        self.compiler_version = None;
+        self.creator = None;
+        self.creation_txn = None;
+        self.is_optimized = None;
+
     @property
     def addr(self):
         return self._addr;
@@ -39,20 +40,20 @@ class ContractInfo:
 
      
     @property
-    def txs(self):
-        return self._txs;
+    def txns(self):
+        return self._txns;
 
-    @txs.setter
-    def txs(self,value):
-        self._txs = value;
+    @txns.setter
+    def txns(self,value):
+        self._txns = value;
 
     @property
-    def int_txs(self):
-        return self._int_txs;
+    def int_txns(self):
+        return self._int_txns;
 
-    @int_txs.setter
-    def int_txs(self,value):
-        self._int_txs = value;
+    @int_txns.setter
+    def int_txns(self,value):
+        self._int_txns = value;
 
     @property
     def mined(self):
@@ -92,6 +93,10 @@ class ContractInfo:
     def exists(self):
         return self._exists;
 
+    @exists.setter
+    def exists(self,v ):
+        self._exists = v;
+
     @property
     def creation_txn(self):
         return self._creation_txn;
@@ -105,9 +110,17 @@ class ContractInfo:
         path=dir+"/src/"+self._addr;
         try:
             with open(path+"/info.json",'r') as f:
-                self._exists = True;
                 text = f.read();
-                self = jsonpickle.decode(text);
+                obj = jsonpickle.decode(text);
+                self.txns = obj.exists;
+                self.int_txns = obj.int_txns;
+                self.name = obj.name;
+                self.mined = obj.mined;
+                self.compiler_version = obj.compiler_version;
+                self.creator = obj.creator;
+                self.creation_txn = obj.creation_txn;
+                self.is_optimized = obj.is_optimized;
+                self.exists = True;
         except IOError:
            return;
 

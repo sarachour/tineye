@@ -157,7 +157,7 @@ class ContractTxnScraper:
         txns = self.db.details(addr).txns;
     
         print(": "+gurl);
-        npages = 999999;
+        npages = 100;
         for page in range(1,npages):
             print("=== Page "+str(page)+" ===")
             url = "https://etherscan.io/txs?a="+addr+"&p="+str(page);

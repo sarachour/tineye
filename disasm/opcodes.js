@@ -47,3 +47,4 @@ var opcodes = {
   "52" : "MSTORE",
   "53" : "MSTORE8",
   "54" : "SLOAD",
+};
