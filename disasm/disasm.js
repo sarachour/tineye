@@ -177,7 +177,7 @@ if(pretty == null){
 
 fs.readFile(bytecode, function(err,data){
     if (err) throw err;
-    datastr = data.toString();
+    datastr = data.toString().trim();
 
     console.log(datastr);
     pretty_text = disasm(datastr);
