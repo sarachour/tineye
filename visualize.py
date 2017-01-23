@@ -52,10 +52,11 @@ class SummaryVis:
             contract = self.db.contracts[addr]
             details = self.db.details(addr).info
 
-            print(str(details))
             if self.db.details(addr).info.exists == False:
-                raise("general_breakdown: no code for "+addr)
+                print("skipping")
+                continue;
 
+            tbl.add_cell("addr",addr);
             tbl.add_cell("wallet",contract.wallet);
             tbl.add_cell("txns_internal",details.int_txns);
             tbl.add_cell("txns_external",details.txns);
@@ -63,7 +64,8 @@ class SummaryVis:
             tbl.add_cell("name",details.name);
             tbl.add_cell("optimized", details.is_optimized);
             tbl.add_cell("compiler", details.compiler_version);
-            tbl.add_cell("has_source", not (details.compiler_version == None));
+            tbl.add_cell("has_source", not (details.compiler_version== None));
+            tbl.add_cell("suicide", (details.creator == None));
             tbl.finish_row();
             
         f = open(output+".txt","w+")

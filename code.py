@@ -112,7 +112,7 @@ class ContractInfo:
             with open(path+"/info.json",'r') as f:
                 text = f.read();
                 obj = jsonpickle.decode(text);
-                self.txns = obj.exists;
+                self.txns = obj.txns;
                 self.int_txns = obj.int_txns;
                 self.name = obj.name;
                 self.mined = obj.mined;

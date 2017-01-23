@@ -3,6 +3,7 @@
 from scan_index import ContractIndexScraper
 from scan_code import ContractCodeScraper
 from scan_txns import ContractTxnScraper
+from dedup import DedupCode
 
 import sys,argparse
 from visualize import *
@@ -55,6 +56,12 @@ def main():
         viskind = args.kind;
         visout = args.output;
         visualizer.execute(viskind,visout);
+
+    elif(args.subparser_name == "inspect" and args.what == "duplicates"):
+        deduper = DedupCode();
+        output = args.output;
+        deduper.find_dups();
+        deduper.report_dups(output);
 
     else:
         print("unimplemented");
