@@ -129,30 +129,35 @@ var opcodes = {
   "f1" : "CALL",
   "f2" : "CALLCODE",
   "f3" : "RETURN",
+  "f4" : "DELEGATECALL",
   "ff" : "SUICIDE"  
 }
 function disasm(code) {
-  if (!code)
-    return code;
-  var codes = code.match(/(..?)/g);
-  
-  var dis = "";
-  for(var i = 1; i < codes.length; i++) {
-    var opcode = opcodes[codes[i]];
-    
-    if (!opcode) {
-      dis = dis + "Missing opcode \n";
-    } else if (opcode.substr(0, 4) === "PUSH") {
-      var length = parseInt(opcode.replace("PUSH", ""));
-      dis = dis + opcode + " 0x" + codes.slice(i + 1, i + length + 1).join("") + "\n";
-      i = i + length;
-    } else {
-      dis = dis + opcode + "\n" ;
-    }    
-  }
-  
-  return dis;
-}
+    if (!code)
+        return code;
+
+    var codes = code.match(/(..?)/g);
+    var dis = "";
+    for(var i = 1; i < codes.length; i++) {
+        var opcode = opcodes[codes[i]];
+
+        if (!opcode) {
+            dis += "UNK["+codes[i]+"]\n";
+            continue;
+        }
+
+        if (opcode.indexOf("PUSH") === 0) {
+            var length = parseInt(opcode.replace("PUSH", ""));
+            dis += opcode + " 0x" + codes.slice(i + 1, i + length + 1).join("") + "\n";
+            i += length;
+        }
+        else {
+            dis = dis + opcode + "\n" ;
+        }    
+    }
+
+    return dis;
+    }
 
 bytecode = null;
 pretty = null;
@@ -179,8 +184,12 @@ fs.readFile(bytecode, function(err,data){
     if (err) throw err;
     datastr = data.toString().trim();
 
-    console.log(datastr);
-    pretty_text = disasm(datastr);
+    if(datastr.indexOf("0x") == 0){
+    	pretty_text = disasm(datastr);
+    }
+    else {
+    	pretty_text = disasm("0x"+datastr);
+    }
     fs.writeFile(pretty,pretty_text, function(err){
         if(err){
             return;
