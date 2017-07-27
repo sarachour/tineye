@@ -1,0 +1,1 @@
+VM="vmware" vagrant up
