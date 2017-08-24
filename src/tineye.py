@@ -36,9 +36,11 @@ def __main__():
                                        dest='tool')
 
     # load all the unique contracts.
-    p_bootstrap = subparsers.add_parser('bootstrap',
+    p_bootstrap = subparsers.add_parser('load',
                                      help='load unique contracts into database.')
 
+    p_bootstrap.add_argument('--start', help='the identifier of the code to analyze')
+    p_bootstrap.add_argument('--n', help='the identifier of the code to analyze')
     # trace all the executions for a unique contract
     p_analyze = subparsers.add_parser('analyze',
                                      help='analyze some source code blockchain.')
@@ -60,10 +62,8 @@ def __main__():
     database = Database(paths.db_dir);
     if args.tool == "bootstrap":
         print("=== Retrieving Data From The Blockchain ===");
-        start_block = 0
-        nblocks = 50
         scraper = Scraper(database,"..")
-        scraper.crawl(start_block,nblocks)
+        scraper.crawl(args.start, args.n)
         database.close()
 
     elif args.tool == "clean":

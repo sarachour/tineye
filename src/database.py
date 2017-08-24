@@ -89,7 +89,7 @@ class Database:
         return code
 
     def get_traces(self,codeid):
-        cmd = "SELECT id,trace FROM txns where code_id=%d;" % codeid
+        cmd = "SELECT id,trace,input FROM txns where code_id=%d;" % codeid
         self.curs.execute(cmd)
         rows = self.curs.fetchall()
         return rows
