@@ -2,12 +2,12 @@ import json;
 from evmdasm import EVMDisAssembler
 import matplotlib as mp
 from colormap import rgb2hex
-
-class CoverageMap:
-
-    def __init__(self,code):
+import sys
+class CoverageExec:
+    def __init__(self,code,pc):
         self.code = code;
         self.freqmap = {};
+        self.entry = pc;
         self.known = 0;
         self.unknown = 0;
         self.traces = 0;
@@ -25,11 +25,16 @@ class CoverageMap:
         else:
             self.unknown += 1;
 
+
     def exec_trace(self,trace):
-        self.traces += 1;
+        ic = 0;
         for el in trace['result']['structLogs']:
-            print("%d: %s" %(el['pc'],el['op']))
-            self.exec_op(el)
+            if ic == 0 and el['pc'] != self.entry:
+                return;
+            self.exec_op(el);
+            ic += 1;
+
+        self.traces += 1;
 
     def write(self,filename):
         n = self.traces
@@ -50,10 +55,31 @@ class CoverageMap:
             else:
                 r,g,b,a = colormap(execs)
                 hexv = rgb2hex(r*255,g*255,b*255)
-                print((r,g,b),hexv,execs)
                 f.write("<div style='background-color:%s'>%s</div>" % (hexv,instr_str))
 
         f.close()
+
+class CoverageMap:
+
+    def __init__(self,code):
+        self.code = code;
+        self.entry_points = {};
+
+
+    def exec_trace(self,trace):
+        ic = 0;
+        print(trace);
+        sys.exit(0);
+        entry_point =  trace['result']['structLogs'][0]['pc']
+        if not (entry_point in self.entry_points):
+            self.entry_points[entry_point] = CoverageExec(self.code,entry_point)
+
+        self.entry_points[entry_point].exec_trace(trace);
+
+    def write(self,name):
+        for entry_point in self.entry_points:
+            ep = self.entry_points[entry_point]
+            ep.write("%s_%d" % (name,entry_point))
 
 class Retina:
 
