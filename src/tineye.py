@@ -1,11 +1,11 @@
 import sys
 import argparse
-from database import Database
+from database import Database,Scraper
 from paths import paths
 
 def __main__():
     parser = argparse.ArgumentParser(description='Analyze smart contracts.')
-    
+
     subparsers = parser.add_subparsers(help='perform various operations over the blockchain.',
                                        dest='tool')
 
@@ -24,9 +24,10 @@ def __main__():
     args = parser.parse_args()
 
     database = Database(paths.db_dir);
+    scraper = Scraper(paths,"..")
     if args.tool == "bootstrap":
         print("=== Bootstrapping ===");
-        database.bootstrap()
+        scraper.crawl()
 
     elif args.tool == "clean":
         print("=== Cleaning ===");
@@ -34,7 +35,6 @@ def __main__():
 
     else:
         print("=== Unimpl ===");
-        
+
 
 __main__()
-
