@@ -37,6 +37,7 @@ class Database:
         self.curs.execute(drop_txn);
 
 
+
     def create_tables(self):
         create_code = '''CREATE TABLE IF NOT EXISTS code (
             id text PRIMARY KEY,
@@ -65,6 +66,25 @@ class Database:
         self.curs.execute(create_code)
         self.curs.execute(create_contracts)
         self.curs.execute(create_txns)
+
+
+    def get_code_usage(self):
+        cmd = "SELECT code_id,COUNT(*) FROM txns GROUP BY code_id;"
+        self.curs.execute(cmd)
+        rows = self.curs.fetchall()
+        return rows
+
+    def get_code_dups(self):
+        cmd = "SELECT code_id,COUNT(*) FROM contracts GROUP BY code_id;"
+        self.curs.execute(cmd)
+        rows = self.curs.fetchall()
+        return rows
+
+    def get_all_code(self):
+        cmd = "SELECT id,code FROM code;"
+        self.curs.execute(cmd)
+        rows = self.curs.fetchall()
+        return rows
 
     def has_source(self,source):
         source_id = hash(source)
@@ -172,8 +192,7 @@ class Scraper:
 
         self.db.commit()
 
-    def crawl(self):
-        base = 3451500
-        for i in range(base,base+1000):
+    def crawl(self,start_block,nblocks):
+        for i in range(start_block,start_block+nblocks):
             print("=== Block %d ===" % i)
             self.crawl_block(i)

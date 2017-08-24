@@ -3,6 +3,25 @@ import argparse
 from database import Database,Scraper
 from paths import paths
 
+def stats_subtool(database,metric):
+    if metric == "usage":
+        results = database.get_code_usage()
+        print("=== Number of Traces per Contract ===")
+        for (ident,ntxns) in results:
+            print("%d\t%d" % (ident,ntxns))
+
+    elif metric == "size":
+        results = database.get_all_code()
+        print("=== Code Size ===")
+        for (ident,code) in results:
+            print("%s\t%d" % (ident,len(code)))
+
+    elif metric == "dups":
+        results = database.get_code_dups()
+        print("=== Code Dups ===")
+        for (ident,dups) in results:
+            print("%d\t%d" % (ident,dups))
+
 def __main__():
     parser = argparse.ArgumentParser(description='Analyze smart contracts.')
 
@@ -14,9 +33,14 @@ def __main__():
                                      help='load unique contracts into database.')
 
     # trace all the executions for a unique contract
-    p_trace = subparsers.add_parser('trace',
-                                     help='generate a trace for a contract through the blockchain.')
+    p_trace = subparsers.add_parser('analyze',
+                                     help='analyze some source code blockchain.')
 
+    # trace all the executions for a unique contract
+    p_stats= subparsers.add_parser('stats',
+                                     help='produce the trace stats for the blockchain.')
+
+    p_stats.add_argument('--metric',help='the statistic to produce')
     # load all the unique contracts.
     p_clean = subparsers.add_parser('clean',
                                      help='load unique contracts into database.')
@@ -24,16 +48,21 @@ def __main__():
     args = parser.parse_args()
 
     database = Database(paths.db_dir);
-    scraper = Scraper(database,"..")
     if args.tool == "bootstrap":
-        print("=== Bootstrapping ===");
-        scraper.crawl()
+        print("=== Retrieving Data From The Blockchain ===");
+        start_block = 0
+        nblocks = 50
+        scraper = Scraper(database,"..")
+        scraper.crawl(start_block,nblocks)
         database.close()
 
     elif args.tool == "clean":
         print("=== Clearing ===");
         database.clear()
         database.close()
+
+    elif args.tool == "stats":
+        stats_subtool(database,args.metric)
 
     else:
         print("=== Unimpl ===");
