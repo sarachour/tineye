@@ -24,14 +24,16 @@ def __main__():
     args = parser.parse_args()
 
     database = Database(paths.db_dir);
-    scraper = Scraper(paths,"..")
+    scraper = Scraper(database,"..")
     if args.tool == "bootstrap":
         print("=== Bootstrapping ===");
         scraper.crawl()
+        database.close()
 
     elif args.tool == "clean":
-        print("=== Cleaning ===");
-        database.clean()
+        print("=== Clearing ===");
+        database.clear()
+        database.close()
 
     else:
         print("=== Unimpl ===");
