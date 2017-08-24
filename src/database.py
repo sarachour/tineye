@@ -80,6 +80,20 @@ class Database:
         rows = self.curs.fetchall()
         return rows
 
+
+    def get_code(self,codeid):
+        cmd = "SELECT code FROM code where id=%d;" % codeid
+        self.curs.execute(cmd)
+        rows = self.curs.fetchall()
+        code = rows[0]
+        return code
+
+    def get_traces(self,codeid):
+        cmd = "SELECT id,trace FROM txns where code_id=%d;" % codeid
+        self.curs.execute(cmd)
+        rows = self.curs.fetchall()
+        return rows
+
     def get_all_code(self):
         cmd = "SELECT id,code FROM code;"
         self.curs.execute(cmd)

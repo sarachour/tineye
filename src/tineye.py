@@ -2,6 +2,13 @@ import sys
 import argparse
 from database import Database,Scraper
 from paths import paths
+from retina import Retina
+
+def analyze_subtool(database,codeid):
+    source = database.get_code(codeid)
+    txns = database.get_traces(codeid)
+    eye = Retina(source,txns);
+    eye.coverage()
 
 def stats_subtool(database,metric):
     if metric == "usage":
@@ -33,8 +40,10 @@ def __main__():
                                      help='load unique contracts into database.')
 
     # trace all the executions for a unique contract
-    p_trace = subparsers.add_parser('analyze',
+    p_analyze = subparsers.add_parser('analyze',
                                      help='analyze some source code blockchain.')
+
+    p_analyze.add_argument('--code', help='the identifier of the code to analyze')
 
     # trace all the executions for a unique contract
     p_stats= subparsers.add_parser('stats',
@@ -44,6 +53,7 @@ def __main__():
     # load all the unique contracts.
     p_clean = subparsers.add_parser('clean',
                                      help='load unique contracts into database.')
+
 
     args = parser.parse_args()
 
@@ -63,6 +73,9 @@ def __main__():
 
     elif args.tool == "stats":
         stats_subtool(database,args.metric)
+
+    elif args.tool == "analyze":
+        analyze_subtool(database,int(args.code))
 
     else:
         print("=== Unimpl ===");
