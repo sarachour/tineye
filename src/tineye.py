@@ -5,8 +5,11 @@ from paths import paths
 from retina import Retina
 
 def analyze_subtool(database,codeid):
+    print("=== Collecting Code ===")
     source = database.get_code(codeid)
+    print("=== Collecting Traces ===")
     txns = database.get_traces(codeid)
+    print("=== Analyze ===")
     eye = Retina(source,txns);
     eye.coverage()
 
@@ -15,7 +18,7 @@ def stats_subtool(database,metric):
         results = database.get_code_usage()
         print("=== Number of Traces per Contract ===")
         for (ident,ntxns) in results:
-            print("%d\t%d" % (ident,ntxns))
+            print("%s\t%d" % (ident,ntxns))
 
     elif metric == "size":
         results = database.get_all_code()
@@ -27,7 +30,7 @@ def stats_subtool(database,metric):
         results = database.get_code_dups()
         print("=== Code Dups ===")
         for (ident,dups) in results:
-            print("%d\t%d" % (ident,dups))
+            print("%s\t%d" % (ident,dups))
 
 def __main__():
     parser = argparse.ArgumentParser(description='Analyze smart contracts.')
@@ -60,10 +63,10 @@ def __main__():
     args = parser.parse_args()
 
     database = Database(paths.db_dir);
-    if args.tool == "bootstrap":
+    if args.tool == "load":
         print("=== Retrieving Data From The Blockchain ===");
         scraper = Scraper(database,"..")
-        scraper.crawl(args.start, args.n)
+        scraper.crawl(int(args.start), int(args.n))
         database.close()
 
     elif args.tool == "clean":
@@ -75,7 +78,7 @@ def __main__():
         stats_subtool(database,args.metric)
 
     elif args.tool == "analyze":
-        analyze_subtool(database,int(args.code))
+        analyze_subtool(database,args.code)
 
     else:
         print("=== Unimpl ===");

@@ -63,8 +63,8 @@ class CoverageMap:
 
 
     def exec_trace(self,trace):
-        ic = 0;
         entry_point = trace.entry_point
+        print(entry_point)
         # the first jump determines the function.
         if not (entry_point in self.entry_points):
             self.entry_points[entry_point] = CoverageExec(self.code,entry_point)
@@ -76,14 +76,6 @@ class CoverageMap:
             ep = self.entry_points[entry_point]
             ep.write("%s_%s" % (name,entry_point))
 
-class Trace:
-
-    def __init__(self,args,trace):
-        self.trace = trace['result']['structLogs'];
-        input_str = args.split("0x")[1];
-        # first eight bytes is function entry point
-        self.entry_point = input_str[0:8];
-        self.args = input_str[9:];
 
 class Retina:
 
@@ -102,8 +94,8 @@ class Retina:
     def __init__(self,source,traces):
         self.code = self.disassemble(source)
         self.traces = {};
-        for (ident,tr,inp) in traces:
-            self.traces[ident] = Trace(inp,json.loads(tr))
+        for trace in traces:
+            self.traces[trace.txn] = trace
 
     def coverage(self):
         coverage = CoverageMap(self.code);
