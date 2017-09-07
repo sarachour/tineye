@@ -321,22 +321,17 @@ class AbsExec:
                 args,ops1 = state.pop(2);
 
                 new_base = EXPRS.ADD.make(EXPRS.GETBASEREG.make(),EXPRS.NUMBER.make(state.get_stack_pos()))
-                undo_base= EXPRS.ADD.make(EXPRS.GETBASEREG.make(),EXPRS.NUMBER.make(0-state.get_stack_pos()))
-                expr = EXPRS.JUMPIF.make().set_loc(args[0]).set_pred(args[1])
+                expr = EXPRS.JUMPIF.make().set_loc(args[0]).set_pred(args[1]).set_hook([EXPRS.SETBASEREG.make(new_base)])
 
                 prog.emit_all(ops1)
-                prog.emit(EXPRS.SETBASEREG.make(new_base))
                 prog.emit(expr)
-                prog.emit(EXPRS.SETBASEREG.make(undo_base))
 
             elif pc.name == OP.JUMP:
-                args,ops1 = state.pop(2);
-                expr = EXPRS.JUMP.make().set_loc(args[0])
-                prog.emit_all(ops1)
+                args,ops1 = state.pop(1);
 
                 new_base = EXPRS.ADD.make(EXPRS.GETBASEREG.make(),EXPRS.NUMBER.make(state.get_stack_pos()))
-                rel_reg = EXPRS.SETBASEREG.make(new_base)
-                prog.emit(rel_reg)
+                expr = EXPRS.JUMP.make().set_loc(args[0]).set_hook([EXPRS.SETBASEREG.make(new_base)])
+                prog.emit_all(ops1)
                 prog.emit(expr)
                 prog.terminate()
 

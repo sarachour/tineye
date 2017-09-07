@@ -1,6 +1,6 @@
 from data import make_indent,EXPRS
 from cfg import *
-
+import copy
 
 class ProgramCF:
 
@@ -97,34 +97,44 @@ class ProgramFragRegister:
 
         self.stack = [];
         self.base_reg = 0;
+        self.top = range(0,1024+1)
+        self.top.reverse()
 
     def base_reg(self):
         return base_reg;
 
+    def abs_idx(self,idx):
+        return idx + self.base_reg;
+
     def set_base_reg(self,expr):
-        self.base_reg = self.eval_expr(expr)
+        math_expr = str(expr).replace("reg.base",str(self.base_reg))
+        self.base_reg = eval(math_expr)
+        #print("base_reg_upd: %d = %s" % (self.base_reg,math_expr))
 
     def get_reg(self,rel_idx):
-        idx = rel_idx + self.base_reg
+        idx = self.abs_idx(rel_idx)
         if idx in self.regs:
             return self.regs[idx]
         else:
             return None
 
     def save(self):
-        self.stack.append((self.regs,self.top))
+        self.stack.append((self.regs,self.top,self.base_reg))
         self.regs = copy.deepcopy(self.regs)
         self.top = copy.deepcopy(self.top)
+        self.base_reg = int(self.base_reg)
 
     def load(self):
-        self.regs,self.top = self.stack.pop()
+        self.regs,self.top,self.base_reg = self.stack.pop()
 
 
-    def clear(self,idx):
+    def clear(self,rel_idx):
+        idx = self.abs_idx(rel_idx)
         top = self.top.pop()
         assert(idx == top)
 
-    def store(self,idx,value):
+    def store(self,rel_idx,value):
+        idx = self.abs_idx(rel_idx)
         if idx < self.top[len(self.top) - 1]:
             self.top.append(idx);
 
@@ -132,9 +142,56 @@ class ProgramFragRegister:
 
 
 def execute_block(reg,cfg):
+
+    if UninterpJumpBB.is_block(cfg):
+        locval = cfg.loc.access(reg.get_reg)
+        if locval.label == "number":
+            print("VAL: %s -> %s" % (cfg.loc,locval))
+            cfg.set_loc(locval)
+            return
+
+        else:
+            print("VAR: %s -> %s" % (cfg.loc,locval))
+            cfg.set_loc(locval)
+            return
+
+    elif ExceptionBB.is_block(cfg):
+        return;
+
+    elif LoopToBB.is_block(cfg):
+        return
+
     assert(BasicBlock.is_block(cfg))
-    for stmt in cfg.stmts:
-        print(stmt)
+    for instr in cfg.stmts:
+        #print(instr.pretty(2))
+        if instr.label == "reg_store":
+            new_expr = instr.expr2.access(reg.get_reg)
+            reg.store(instr.expr1.id,new_expr)
+
+        elif instr.label == "reg_destroy":
+            reg.clear(instr.value.id)
+
+
+        elif instr.label == "set_base_reg":
+            reg.set_base_reg(instr.value);
+
+    next_block = cfg.next
+
+    if next_block == None:
+        return;
+
+    if CondBB.is_block(next_block):
+        reg.save()
+        execute_block(reg,next_block.taken)
+        reg.load()
+        reg.save()
+        execute_block(reg,next_block.not_taken)
+        reg.load()
+        return
+
+    else:
+        execute_block(reg,next_block)
+
 
 def resolve_symbolic_jumps(reg,cfg):
     # this must be a basic block
@@ -145,10 +202,11 @@ def derive_code_cfg(prog,stack,code):
     blk = BasicBlock();
     for idx in range(0,len(code)):
         instr = code[idx]
-        print(instr)
         # if we have a dynamic, unresolved jump mark as a symbolic jump
         if instr.kind == "jump" and instr.dynamic():
+            jmp_hook = derive_code_cfg(prog,stack,instr.hook)
             jmp = UninterpJumpBB(instr.get_loc())
+            jmp.set_hook(jmp_hook)
 
             if instr.has_pred():
                 nt_blk = derive_code_cfg(prog,stack, code[(idx+1):])
@@ -165,16 +223,23 @@ def derive_code_cfg(prog,stack,code):
         elif instr.kind == "jump" and instr.dynamic() == False:
             loc = instr.get_loc()
             frag_child = prog.get_frag(loc)
+
+            jump_hook= derive_code_cfg(prog,stack,instr.hook)
+
             if frag_child == None:
                 jump_blk = ExceptionBB();
             else:
                 code_child = frag_child.get_code()
 
                 if loc in stack:
-                    jump_blk = LoopToBB(loc)
+                    jump_blk  = LoopToBB(loc)
+                    jump_blk.set_hook(jump_hook)
                 else:
-                    jump_blk = derive_code_cfg(prog,[loc] + stack, code_child)
-                    jump_blk.label = loc
+                    jump_body = derive_code_cfg(prog,[loc] + stack, code_child)
+                    jump_body.label = loc
+                    jump_hook.next_block(jump_body)
+                    jump_blk = jump_hook
+
 
             if instr.has_pred():
                 nt_blk = derive_code_cfg(prog,stack,code[(idx+1):])
@@ -200,7 +265,8 @@ def derive_cfg(prog,entry):
     code = frag.get_code()
     top_block = derive_code_cfg(prog,[entry],code);
     top_block.label = entry
-    resolve_symbolic_jumps(ProgramFragExecutor(),top_block)
+    resolve_symbolic_jumps(ProgramFragRegister(),top_block)
+    #print(top_block.pretty(0,detailed=True))
     return top_block
 
 
@@ -209,13 +275,3 @@ def reconstruct(prog,entry):
     print("===== Reconstructing Entry ====")
     #executor = ProgramFragExecutor()
     par_block = derive_cfg(prog,entry)
-
-
-    print(par_block.pretty(1))
-    raise Exception("stopping point")
-
-    print(graph)
-
-    #fxn = Block()
-    #executor.execute_entry(self,entry,fxn)
-    return fxn;

@@ -6,8 +6,6 @@ from data import Bytecode,ReconstructedProgram,FragmentedProgram
 def disasm(binary):
     disasm= EVMCode()
     bytecode = Bytecode(disasm.disassemble(binary))
-    for instr in bytecode.code:
-        print(repr(instr))
 
     return bytecode
 
@@ -38,11 +36,11 @@ def reconstruct(prog):
 
     for point in prog.entry_points:
         print("==== Entry Point %d ====" % point)
-        recon_prog = reconstruct(prog,point)
-        recon_prog.add_func(point,recon_prog)
+        fxn = reconstruct(prog,point)
+        recon_prog.add_func(point,fxn)
 
 
-        
+
 def __main__():
     filename = sys.argv[1]
     fh = open(filename,'r')

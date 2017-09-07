@@ -322,6 +322,12 @@ class Jump:
         self.kind = "jump"
         self.loc =NoArg()
         self.pred =NoArg()
+        self.hook = [];
+
+
+    def set_hook(self,hook):
+        self.hook = hook
+        return self
 
     def make(self):
         return Jump(self.label)
@@ -376,7 +382,7 @@ class ExprSpec:
         self.ARGLOAD = Op2("arg_load","args.word(%s,n=%s)")
         self.ARGSIZE= Op0("arg_load","args.size")
         self.ARG= Op1("arg","arg%s")
-        
+
         self.SSTORE = Op2("disk_store","disk.store[%s] := %s")
         self.NUMBER = Op1("number","%s")
         self.ASSIGN = Op2("assign","%s = %s")
@@ -617,4 +623,4 @@ class ReconstructedProgram:
         self.blocks = {};
 
     def add_func(self,entry_point,code):
-        self.blocks[entry_point] = exec_blocks
+        self.blocks[entry_point] = code
