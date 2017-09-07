@@ -86,7 +86,7 @@ class Database:
         self.curs.execute(cmd)
         rows = self.curs.fetchall()
         code = rows[0]
-        return code
+        return code[0]
 
     def get_traces(self,codeid):
         cmd = "SELECT id,sender,recip,input,is_ctor FROM txns where code_id='%s';" % codeid
@@ -95,6 +95,7 @@ class Database:
         debugger = EthDebug("127.0.0.1",8545)
         traces = []
         for (ident,sender,recip,inp,is_ctor) in rows:
+            print("trace %d/%d" % (len(traces),len(rows)))
             trace = json.loads(debugger.get_trace(ident))
             if "error" in trace:
                 print(trace["error"])

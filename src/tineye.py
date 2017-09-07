@@ -3,15 +3,50 @@ import argparse
 from database import Database,Scraper
 from paths import paths
 from retina import Retina
+from decompiler.decompile import decompile,disasm
+import os
 
 def analyze_subtool(database,codeid):
+
+    base_dir = "data/%s" % codeid;
+    trace_dir = "%s/traces" % base_dir;
+
+    if not os.path.exists(trace_dir):
+        os.makedirs(trace_dir)
+
+
+    code_file = lambda x : "%s/%s" % (base_dir,x)
+    trace_file = lambda x : "%s/%s" % (trace_dir,x)
+
     print("=== Collecting Code ===")
     source = database.get_code(codeid)
+
+    f = open(code_file("code.byte"),'w')
+    f.write(source)
+    f.close()
+
+    f = open(code_file("code.byte.pretty"),'w')
+    f.write(disasm(source))
+    f.close()
+
+    decompiled = decompile(source)
+    f = open(code_file("code.ir"),'w')
+    f.write(decompiled.dump());
+    f.close()
+
+    f = open(code_file("code.ir.pretty"),'w')
+    f.write(decompiled.pretty());
+    f.close()
+
+    return;
+
+
     print("=== Collecting Traces ===")
     txns = database.get_traces(codeid)
-    print("=== Analyze ===")
-    eye = Retina(source,txns);
-    eye.coverage()
+    for trace in txns:
+        f = open(trace_file("%s.trace" % trace.txn),'w')
+        f.write(trace.dump())
+        f.close()
 
 def stats_subtool(database,metric):
     if metric == "usage":
@@ -45,8 +80,8 @@ def __main__():
     p_bootstrap.add_argument('--start', help='the identifier of the code to analyze')
     p_bootstrap.add_argument('--n', help='the identifier of the code to analyze')
     # trace all the executions for a unique contract
-    p_analyze = subparsers.add_parser('analyze',
-                                     help='analyze some source code blockchain.')
+    p_analyze = subparsers.add_parser('download',
+                                     help='download source code from blockchain.')
 
     p_analyze.add_argument('--code', help='the identifier of the code to analyze')
 
@@ -77,7 +112,7 @@ def __main__():
     elif args.tool == "stats":
         stats_subtool(database,args.metric)
 
-    elif args.tool == "analyze":
+    elif args.tool == "download":
         analyze_subtool(database,args.code)
 
     else:

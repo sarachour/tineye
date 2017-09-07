@@ -79,6 +79,14 @@ class CoverageMap:
 
 class Retina:
 
+    def __init__(self,path,source,traces):
+        self.path = path;
+        self.code = self.disassemble(source)
+        self.traces = {};
+        for trace in traces:
+            self.traces[trace.txn] = trace
+
+
     def disassemble(self,code):
         bytecode = code[0].split("0x")[1]
 
@@ -91,11 +99,6 @@ class Retina:
 
         return code;
 
-    def __init__(self,source,traces):
-        self.code = self.disassemble(source)
-        self.traces = {};
-        for trace in traces:
-            self.traces[trace.txn] = trace
 
     def coverage(self):
         coverage = CoverageMap(self.code);

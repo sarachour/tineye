@@ -1,4 +1,5 @@
 import web3
+import json
 
 class Trace:
 
@@ -15,3 +16,16 @@ class Trace:
         # first eight bytes is function entry point
         self.entry_point = input_str[0:8];
         self.args = input_str[9:];
+
+
+    def dump(self):
+        js = {
+            'trace':self.trace,
+            'txn':self.txn,
+            'from':self.sender,
+            'to':self.recip,
+            'ctor':self.is_ctor,
+            'entry_point':self.entry_point,
+            'args': self.args
+        }
+        return json.dumps(js)
