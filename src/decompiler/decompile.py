@@ -99,7 +99,44 @@ class Opcodes:
 
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
+
+
 OP = Opcodes()
+
+class NoArg:
+
+    def __init__(self):
+        self.kind ="none"
+
+    def remap(self,i):
+        return self;
+
+    def access(self,fn):
+        return self;
+
+    def __repr__(self):
+        return "_no_arg_"
+
+    def pretty(self,indent):
+        return "%s%s" % (make_indent(indent),str(self))
+
+class TODO:
+
+    def __init__(self,msg):
+        self.kind ="todo"
+        self.msg = msg
+
+    def remap(self,i):
+        return self;
+
+    def access(self,fn):
+        return self;
+
+    def __repr__(self):
+        return ("todo:%s" % self.msg)
+
+    def pretty(self,indent):
+        return "%s%s" % (make_indent(indent),str(self))
 
 class Op0:
 
@@ -117,12 +154,77 @@ class Op0:
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
 
+    def remap(self,i):
+        return self;
+
+    def access(self,i):
+        return self;
+
+
+class Var:
+    nvars = 0;
+
+    def __init__(self,label,tostr):
+        self.label = label
+        self.var_id = Var.nvars
+        self.repr = tostr;
+        self.kind = "vars"
+        Var.nvars += 1;
+
+    def make(self):
+        return Var(self.label,self.repr);
+
+    def remap(self,i):
+        return self;
+
+    def access(self,i):
+        return self;
+
+    def __repr__(self):
+        return self.repr % self.var_id
+
+    def pretty(self,indent):
+        return "%s%s" % (make_indent(indent),str(self))
+
+
+class RegVal:
+
+    def __init__(self,label,tostr):
+        self.label = label;
+        self.repr = tostr;
+        self.id = None;
+        self.kind = "regval"
+
+    def make(self,value):
+        op = RegVal(self.label,self.repr)
+        op.id = int(value)
+        return op
+
+
+    def __repr__(self):
+        return self.repr % (str(self.id))
+
+
+    def pretty(self,indent):
+        return "%s%s" % (make_indent(indent),str(self))
+
+    def remap(self,i):
+        rv = RegVal(self.label,self.repr)
+        rv.id= i(self.id)
+        return rv
+
+    def access(self,get_i):
+        reg_val = get_i(self.id)
+        if reg_val == None:
+            return self;
+        else:
+            return reg_val
 class Op1:
 
     def __init__(self,label,tostr):
         self.label = label;
         self.repr = tostr;
-        self.value = None;
+        self.value = NoArg();
         self.kind = "op1"
 
     def make(self,value):
@@ -137,12 +239,27 @@ class Op1:
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
 
+    def map(self,fn):
+        o = Op1(self.label,self.repr)
+        try:
+            o.value = fn(self.value)
+        except Exception:
+            return self;
+        return o
+
+
+    def remap(self,i):
+        return self.map(lambda x: x.remap(i))
+
+    def access(self,i):
+        return self.map(lambda x: x.access(i))
+
 class OpN:
 
     def __init__(self,label,tostr):
         self.label = label;
         self.repr = tostr;
-        self.value = None;
+        self.value = [NoArg()];
         self.kind = "opn"
 
     def make(self,value):
@@ -155,13 +272,29 @@ class OpN:
 
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
+
+    def remap(self,i):
+        o = OpN(self.label,self.repr)
+        o.value = la
+
+    def map(self,fn):
+        o = OpN(self.label,self.repr)
+        o.value = map(fn,self.value)
+        return o
+
+    def remap(self,i):
+        return self.map(lambda x: x.remap(i))
+
+    def access(self,i):
+        return self.map(lambda x: x.access(i))
+
 class Op2:
 
     def __init__(self,label,tostr):
         self.label = label;
         self.repr = tostr;
-        self.expr1 = None;
-        self.expr2 = None;
+        self.expr1 = NoArg();
+        self.expr2 = NoArg();
         self.kind = "op2"
 
     def args(self,e1,e2):
@@ -179,14 +312,28 @@ class Op2:
 
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
+
+
+    def map(self,fn):
+        o = Op2(self.label,self.repr)
+        o.expr1 = fn(self.expr1)
+        o.expr2 = fn(self.expr2)
+        return o
+
+    def remap(self,i):
+        return self.map(lambda x: x.remap(i))
+
+    def access(self,i):
+        return self.map(lambda x: x.access(i))
+
 class Op3:
 
     def __init__(self,label,tostr):
         self.label = label;
         self.repr = tostr;
-        self.expr1 = None;
-        self.expr2 = None;
-        self.expr3 = None;
+        self.expr1 = NoArg();
+        self.expr2 = NoArg();
+        self.expr3 = NoArg();
         self.kind = "op3"
 
     def args(self,e1,e2,e3):
@@ -204,6 +351,21 @@ class Op3:
 
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
+
+    def map(self,fn):
+        o = Op3(self.label,self.repr)
+        o.expr1 = fn(self.expr1)
+        o.expr2 = fn(self.expr2)
+        o.expr3 = fn(self.expr3)
+        return o
+
+
+    def remap(self,i):
+        return self.map(lambda x: x.remap(i))
+
+    def access(self,i):
+        return self.map(lambda x: x.access(i))
+
 class Call:
 
     def __init__(self,label):
@@ -239,12 +401,27 @@ class Call:
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
 
+    def map(self,fn):
+        rc = Call(self.label)
+        rc.gas = fn(self.gas)
+        rc.to = fn(self.to)
+        rc.value = fn(self.value)
+        rc.inputs = map(fn,self.inputs)
+        rc.outputs = map(fn,self.outputs)
+        return rc
+
+    def remap(self,i):
+        return self.map(lambda x: x.remap(i))
+
+    def access(self,i):
+        return self.map(lambda x: x.access(i))
+
 class Jump:
     def __init__(self,label):
         self.label = label
         self.kind = "jump"
-        self.loc = None
-        self.pred = None
+        self.loc =NoArg()
+        self.pred =NoArg()
 
     def make(self):
         return Jump(self.label)
@@ -272,6 +449,18 @@ class Jump:
     def pretty(self,indent):
         return "%s%s" % (make_indent(indent),str(self))
 
+    def map(self,fn):
+        rj = Jump(self.label)
+        rj.loc = fn(self.loc);
+        rj.pred = fn(self.pred);
+        return rj;
+
+    def remap(self,i):
+        return self.map(lambda x: x.remap(i))
+
+    def access(self,i):
+        return self.map(lambda x: x.access(i))
+
 class ExprSpec:
     def __init__(self):
         # n is number of bits
@@ -281,12 +470,14 @@ class ExprSpec:
         self.ARGLOAD = Op2("arg_load","args.word(%s,n=%s)")
         self.SSTORE = Op2("disk_store","disk.store[%s] := %s")
         self.NUMBER = Op1("number","%s")
+        self.ASSIGN = Op2("assign","%s = %s")
+        self.VAR = Var("var","v%s")
         self.SHA3 = Op1("sha3","sha3(%s)")
         self.BALANCE = Op1("balance","bal(%s)")
         self.NOT = Op1("not","!%s")
         self.OPLABEL = Op1("lbl","// %s")
         self.RETURN = Op1("return","return %s")
-        self.ABSSTACK = Op1("abs_stack_val","@a%s")
+        self.REGVAL = RegVal("reg_val","reg[%s]")
         self.ADD = Op2("add","(%s+%s)")
         self.AND = Op2("and","(%s & %s)")
         self.OR = Op2("or","(%s | %s)")
@@ -310,18 +501,18 @@ class ExprSpec:
         self.LOG = OpN("log","log(%s)")
         self.CALL = Call("call")
         self.THROW = Op0("throw","throw exception")
-        self.REG_STORE = Op2("reg_store","reg[%s] := %s")
-        self.REG_LOAD = Op1("reg_load","reg[%s]")
+        self.REG_STORE = Op2("reg_store","%s := %s")
+        self.REG_LOAD = Op1("reg_load","%s")
+        self.REG_DESTROY = Op1("reg_destroy","delete %s")
         self.COMMENT = Op1("comment","// %s")
-        self.REG_DESTROY = Op1("reg_destroy","delete reg[%s]")
 
 EXPRS = ExprSpec()
 
 class AbsState:
 
     def __init__(self,bytecode):
-        self.stack_size = 512;
-        self.stack = map(lambda i : EXPRS.ABSSTACK.make(512-i), range(0,513))
+        self.stack_size = 1024;
+        self.stack = map(lambda i : EXPRS.REGVAL.make(1024-i), range(0,1024+1))
         self.code = bytecode;
         self.pc = 0;
         self.top_counter = 0;
@@ -339,7 +530,8 @@ class AbsState:
     def push_1(self,data):
         self.stack.append(data)
         self.top_counter -= 1;
-        op = EXPRS.REG_STORE.make(self.top_counter,data)
+        reg = EXPRS.REGVAL.make(self.top_counter)
+        op = EXPRS.REG_STORE.make(reg,data)
         return op;
 
     def push(self,data):
@@ -352,7 +544,8 @@ class AbsState:
 
     def pop_1(self):
         arg = self.stack.pop(-1)
-        op = EXPRS.REG_DESTROY.make(self.top_counter)
+        reg = EXPRS.REGVAL.make(self.top_counter)
+        op = EXPRS.REG_DESTROY.make(reg)
         self.top_counter += 1;
         return arg,op
 
@@ -369,7 +562,8 @@ class AbsState:
 
     def store(self,n1,data):
         self.stack[len(self.stack) - (n1 +1)] = data
-        return EXPRS.REG_STORE.make(self.top_counter + n1, data)
+        reg = EXPRS.REGVAL.make(self.top_counter + n1)
+        return EXPRS.REG_STORE.make(reg, data)
 
     def swap(self,n1,n2):
         tmp = self.stack[len(self.stack) - (n2+1)]
@@ -460,7 +654,7 @@ class AbsExec:
 
             elif OP.log(pc.name):
                 n = OP.log_n(pc.name)
-                args,ops = state.pop(n)
+                args,ops = state.pop(n+2)
                 prog.emit_all(ops);
                 prog.emit(EXPRS.LOG.make(args));
 
@@ -475,20 +669,24 @@ class AbsExec:
             elif pc.name == OP.SLOAD:
                 args,ops1 = state.pop(1);
                 ml = EXPRS.SLOAD.make(args[0])
-                ops2 = state.push([ml])
-                prog.emit_all(ops1 + ops2)
+                m_var = EXPRS.VAR.make()
+                iv = EXPRS.ASSIGN.make(m_var,ml)
+                ops2 = state.push([m_var])
+                prog.emit_all(ops1 + [iv] + ops2)
 
             elif pc.name == OP.MSTORE:
                 args, ops1 = state.pop(2);
-                ms = EXPRS.MSTORE.make(args[0],32,args[1])
-                prog.emit(ms)
                 prog.emit_all(ops1)
+                siz = EXPRS.NUMBER.make(32)
+                ms = EXPRS.MSTORE.make(args[0],siz,args[1])
+                prog.emit(ms)
 
             elif pc.name == OP.MSTORE8:
                 args, ops1 = state.pop(2);
-                ms = EXPRS.MSTORE.make(args[0],8,args[1])
-                prog.emit(ms)
+                siz = EXPRS.NUMBER.make(8)
+                ms = EXPRS.MSTORE.make(args[0],siz,args[1])
                 prog.emit_all(ops1)
+                prog.emit(ms)
 
             elif pc.name == OP.CALL:
                 args,ops1 = state.pop(7);
@@ -497,7 +695,9 @@ class AbsExec:
                 call.set_gas(args[0]).set_callee(args[1]).set_value(args[2])
                 call.set_inputs(args[3],args[4])
                 call.set_outputs(args[5],args[6])
+                ops2 = state.push([TODO("return_val_for_call")])
                 prog.emit(call)
+                prog.emit_all(ops2)
 
             elif pc.name == OP.CALLVALUE:
                 ops = state.push([EXPRS.VALUE.make()])
@@ -509,7 +709,8 @@ class AbsExec:
 
             elif pc.name == OP.CALLDATALOAD:
                 args,ops1 = state.pop(1);
-                ml = EXPRS.ARGLOAD.make(args[0],8);
+                siz = EXPRS.NUMBER.make(8)
+                ml = EXPRS.ARGLOAD.make(args[0],siz);
                 ops2 = state.push([ml])
                 prog.emit_all(ops1+ops2)
 
@@ -518,14 +719,14 @@ class AbsExec:
                 n_bits = EXPRS.MUL.make(args[2],EXPRS.NUMBER.make(8))
                 data = EXPRS.ARGLOAD.make(args[0],n_bits);
                 ml = EXPRS.MSTORE.make(args[1],args[2],data)
-                ops2 = state.push(ops1)
-                prog.emit(ml);
-                prog.emit_all(ops1+ops2)
+                prog.emit_all(ops1)
+                prog.emit(ml)
 
             elif pc.name == OP.SHA3:
-                args,ops1 = state.pop(1);
-                ml = EXPRS.SHA3.make(args[0])
-                ops2 = state.push([ml])
+                args,ops1 = state.pop(2);
+                memload = EXPRS.MLOAD.make(args[0],args[1])
+                sha3 = EXPRS.SHA3.make(memload)
+                ops2 = state.push([sha3])
                 prog.emit_all(ops1 + ops2)
 
             elif pc.name == OP.BALANCE:
@@ -536,9 +737,12 @@ class AbsExec:
 
             elif pc.name == OP.MLOAD:
                 args,ops1 = state.pop(1);
-                ml = EXPRS.MLOAD.make(args[0],32)
-                ops2 = state.push([ml])
-                prog.emit_all(ops1 + ops2)
+                siz = EXPRS.NUMBER.make(32)
+                ml = EXPRS.MLOAD.make(args[0],siz)
+                m_var = EXPRS.VAR.make()
+                iv = EXPRS.ASSIGN.make(m_var,ml)
+                ops2 = state.push([m_var])
+                prog.emit_all(ops1 +[iv]+ ops2)
 
             elif pc.name == OP.EXP:
                 args,ops1 = state.pop(2);
@@ -655,17 +859,17 @@ class AbsExec:
                 prog.emit(expr)
 
             elif pc.name == OP.JUMP:
-                args,ops1 = state.pop(1);
-                prog.emit_all(ops1)
+                args,ops1 = state.pop(2);
                 expr = EXPRS.JUMP.make().set_loc(args[0])
+                prog.emit_all(ops1)
                 prog.emit(expr)
                 prog.terminate()
 
             elif pc.name == OP.RETURN:
                 args,ops1 = state.pop(2);
-                prog.emit_all(ops1)
                 ml = EXPRS.MLOAD.make(args[0],args[1])
                 expr = EXPRS.RETURN.make(ml)
+                prog.emit_all(ops1)
                 prog.emit(expr)
                 prog.terminate()
 
@@ -713,47 +917,53 @@ class Bytecode:
             return self.code[idx]
         return None
 
+import copy
 
 class ProgramFragRegister:
     def __init__(self):
         self.regs = {};
-        for i in range(0,513):
-            self.regs[i] = EXPRS.ABSSTACK.make(i)
+        for i in range(0,1024+1):
+            self.regs[i] = EXPRS.REGVAL.make(i)
 
         self.stack = [];
-        self.min_reg = 0;
+        self.top = range(0,1024+1)
+        self.top.reverse();
 
-    def _upd_min(self):
-        if len(self.regs.keys()) > 0:
-            self.min_reg = min(self.regs.keys())
+    def get_reg(self,idx):
+        if idx in self.regs:
+            return self.regs[idx]
         else:
-            self.min_reg = None
-
-    def clear(self,idx):
-        #del self.regs[idx]
-        self._upd_min()
-
-    def store(self,idx,value):
-        self.regs[idx] = value;
-        self._upd_min()
+            return None
 
     def save(self):
-        self.stack.append(self.regs)
-
-    def orient(self):
-        stk = {}
-        if self.min_reg == None:
-            self.stack = {};
-            return;
-
-        offset = 0-self.min_reg;
-        for regidx in self.regs:
-            stk[regidx + offset] = self.regs[regidx]
-
-        self.regs = stk;
+        self.stack.append((self.regs,self.top))
+        self.regs = copy.deepcopy(self.regs)
+        self.top = copy.deepcopy(self.top)
 
     def load(self):
-        self.regs = self.stack.pop()
+        self.regs,self.top = self.stack.pop()
+
+    # remap with current stack
+    def remap(self,prog):
+        newprog = [];
+        top = min(self.top)
+        fn = lambda idx: idx + top
+        for instr in prog:
+            new_instr = instr.remap(fn)
+            newprog.append(new_instr)
+
+
+        return newprog
+
+    def clear(self,idx):
+        top = self.top.pop()
+        assert(idx == top)
+
+    def store(self,idx,value):
+        if idx < self.top[len(self.top) - 1]:
+            self.top.append(idx);
+
+        self.regs[idx] = value;
 
 class Block:
     def __init__(self):
@@ -820,38 +1030,41 @@ class ProgramFragExecutor:
         self.regs = ProgramFragRegister();
         self.cf = ProgramCF()
 
-    def xform(self,instr):
-        return instr;
     # transform into a new program
     def execute_code(self,prog,code,block):
         for idx in range(0,len(code)):
+
             instr = code[idx]
             if instr.label == "reg_store":
-                #self.regs.store(instr.expr1,instr.expr2)
-                block.add(self.xform(instr))
+                new_expr2 = instr.expr2.access(self.regs.get_reg)
+                self.regs.store(instr.expr1.id,new_expr2)
+                block.add(EXPRS.REG_STORE.make(instr.expr1,new_expr2))
 
             elif instr.label == "reg_destroy":
-                #self.regs.clear(instr.value)
-                block.add(self.xform(instr))
+                self.regs.clear(instr.value.id)
+                block.add(instr)
 
             elif instr.kind == "jump":
 
                 # if this creates a loop
-                if self.cf.loops(instr.get_loc()) or instr.dynamic():
-                        block.add(self.xform(instr));
+                if instr.dynamic() or (instr.dynamic() == False and self.cf.loops(instr.get_loc())):
+                        block.add(instr);
                         return;
 
-                #self.regs.save()
-                #self.regs.orient()
                 if instr.pred != None:
-                    cond = Conditional(instr.pred,instr.get_loc())
+                    new_pred = instr.pred.access(self.regs.get_reg)
+                    cond = Conditional(new_pred,instr.get_loc())
 
                     self.cf.pred_call(instr.pred,None)
+                    self.regs.save()
                     self.execute_entry(prog,instr.get_loc(),cond.taken)
+                    self.regs.load()
                     self.cf.ret()
 
                     self.cf.pred_call(EXPRS.NOT.make(instr.pred),None)
+                    self.regs.save()
                     self.execute_code(prog,code[(idx+1):],cond.not_taken)
+                    self.regs.load()
                     self.cf.ret()
 
                     block.add(cond)
@@ -861,14 +1074,14 @@ class ProgramFragExecutor:
 
 
             else:
-                block.add(self.xform(instr));
+                new_instr = instr.access(self.regs.get_reg)
+                block.add(new_instr);
 
     def execute_entry(self,prog,entry,block):
-        if self.cf.loops(entry):
-            block.add(EXPRS.COMMENT.make("> infinite loop %d" % entry))
-            return;
         self.cf.pred_call(None,entry)
-        self.execute_code(prog,prog.fragments[entry].code,block)
+        code = prog.fragments[entry].code
+        new_code = self.regs.remap(code)
+        self.execute_code(prog,new_code,block)
         self.cf.ret()
 
 class Program:
