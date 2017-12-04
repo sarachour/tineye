@@ -641,10 +641,10 @@ class ReconstructedProgram:
         self.blocks[entry_point] = code
 
 
-    def pretty(self):
+    def pretty(self,detailed=True):
         r = ""
         for entry_point,code in self.blocks.items():
             r += "=== %s ====\n" % entry_point
             if code:
-                r += "%s\n" % code.pretty(1)
+                r += "%s\n" % code.pretty(1,detailed=detailed)
         return r
