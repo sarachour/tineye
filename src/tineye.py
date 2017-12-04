@@ -3,7 +3,7 @@ import argparse
 from database import Database,Scraper
 from paths import paths
 from retina import Retina
-from decompiler.decompile import decompile,disasm
+from decompiler.decompile import disasm
 import os
 
 def analyze_subtool(database,codeid):
@@ -74,16 +74,16 @@ def __main__():
                                        dest='tool')
 
     # load all the unique contracts.
-    p_bootstrap = subparsers.add_parser('load',
-                                     help='load unique contracts into database.')
+    p_bootstrap = subparsers.add_parser('download',
+                                     help='download the contracts from the blockchain.')
 
-    p_bootstrap.add_argument('--start', help='the identifier of the code to analyze')
-    p_bootstrap.add_argument('--n', help='the identifier of the code to analyze')
+    p_bootstrap.add_argument('--start', required=True,help='the starting block')
+    p_bootstrap.add_argument('--n', required=True,help='the number of blocks to download')
     # trace all the executions for a unique contract
-    p_analyze = subparsers.add_parser('download',
-                                     help='download source code from blockchain.')
+    p_analyze = subparsers.add_parser('traces',
+                                      help='given the id of the program, download all of the traces.')
 
-    p_analyze.add_argument('--code', help='the identifier of the code to analyze')
+    p_analyze.add_argument('--prog', help='the identifier of the program to analyze')
 
     # trace all the executions for a unique contract
     p_stats= subparsers.add_parser('stats',
@@ -92,15 +92,16 @@ def __main__():
     p_stats.add_argument('--metric',help='the statistic to produce')
     # load all the unique contracts.
     p_clean = subparsers.add_parser('clean',
-                                     help='load unique contracts into database.')
+                                     help='load unique contracts into database. [usage/size/dups].')
 
 
     args = parser.parse_args()
 
     database = Database(paths.db_dir);
-    if args.tool == "load":
+    if args.tool == "download":
         print("=== Retrieving Data From The Blockchain ===");
         scraper = Scraper(database,"..")
+
         scraper.crawl(int(args.start), int(args.n))
         database.close()
 
@@ -112,11 +113,10 @@ def __main__():
     elif args.tool == "stats":
         stats_subtool(database,args.metric)
 
-    elif args.tool == "download":
+    elif args.tool == "traces":
         analyze_subtool(database,args.code)
 
     else:
-        print("=== Unimpl ===");
-
+        raise Exception("unknown command: %s. try the --help tag." % args.tool)
 
 __main__()

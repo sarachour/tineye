@@ -1,7 +1,7 @@
 import sys
-from disasm import EVMCode
+from decompiler.disasm import EVMCode
 import json
-from data import Bytecode,ReconstructedProgram,FragmentedProgram
+from decompiler.data import Bytecode,ReconstructedProgram,FragmentedProgram
 
 def disasm(binary):
     disasm= EVMCode()
@@ -41,11 +41,10 @@ def reconstruct(prog):
 
 
 
-def __main__():
+def main():
     filename = sys.argv[1]
     fh = open(filename,'r')
     binary = fh.read()
     frag = decompile(binary)
     prog = reconstruct(frag)
 
-__main__()

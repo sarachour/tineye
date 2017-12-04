@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # Author : <github.com/tintinweb>
 '''
 Verbose EthereumVM Disassembler
@@ -281,7 +281,7 @@ class EVMDisAssembler(object):
                 b = ''.join(b)
                 try:
                     yield int(b,16)
-                except ValueError, ve:
+                except ValueError as ve:
                     logger.warning("skipping invalid byte: %s"%repr(b))
 
         pc = 0
@@ -292,7 +292,7 @@ class EVMDisAssembler(object):
             logger.debug(opcode)
             try:
                 instruction = self.OPCODE_TABLE[opcode].consume(iter_bytecode)
-            except KeyError,ke:
+            except KeyError as ke:
                 msg = "error: byte at address %d (%s) is not a valid operator"%(pc,hex(opcode))
                 if self.debug:
                     logger.exception(msg)
@@ -322,22 +322,22 @@ class EVMDasmPrinter:
     @staticmethod
     def listing(disasm):
         for i,nm in enumerate(disasm):
-            print "%s %s"%(nm.name, nm.operand)
+            print("%s %s"%(nm.name, nm.operand))
 
     @staticmethod
     def detailed(disasm):
-        print " %-9s  %-10s  %-15s %-66s %-30s %s"%("Instr.#", "addrs.", "mnemonic", "operand", "xrefs", "description")
-        print "-"*150
+        print(" %-9s  %-10s  %-15s %-66s %-30s %s"%("Instr.#", "addrs.", "mnemonic", "operand", "xrefs", "description"))
+        print("-"*150)
         # listify it in order to resolve xrefs, jumps
         for i,nm in enumerate(disasm):
             if nm.name == "JUMPDEST":
-                print ":loc_%s"%hex(nm.address)
-            print "[%8d] [0x%0.8x] %-15s %-66s %-30s # %s"%(i, nm.address, nm.name,
+                print(":loc_%s"%hex(nm.address))
+            print("[%8d] [0x%0.8x] %-15s %-66s %-30s # %s"%(i, nm.address, nm.name,
                                                         nm.describe_operand(),
-                                                        ','.join('%s@%s'%(x.name,hex(x.address)) for x in nm.xrefs) if nm.xrefs else '',
+                                                        ','.join('%s@%s'%(x.name,hex(x.address)) for x in nm.xrefs)) if nm.xrefs else '',
                                                         nm.description)
             if nm.name in OPCODE_MARKS_BASICBLOCK_END:
-                print ""
+                print("")
 
 def main():
     logging.basicConfig(format="%(levelname)-7s - %(message)s")
@@ -387,7 +387,7 @@ def main():
         logger.warning("disassembly finished with %d errors"%len(evm_dasm.errors))
 
     # quick check
-    print "assemble(disassemble(evmcode))==",evmcode.strip() == ''.join(evm_dasm.assemble(evm_dasm.disassemble()))
+    print("assemble(disassemble(evmcode))==",evmcode.strip() == ''.join(evm_dasm.assemble(evm_dasm.disassemble())))
     sys.exit(len(evm_dasm.dis.errors))
 
 if __name__=="__main__":

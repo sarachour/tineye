@@ -3,6 +3,8 @@ import sqlite3
 from web3 import Web3, HTTPProvider, IPCProvider
 import json, requests
 import hashlib
+import os
+import sys
 
 class EthDebug:
 
@@ -25,6 +27,9 @@ class Database:
     def __init__(self,dbpath):
         self.path = dbpath;
         self.dbfile = "%s/%s" % (self.path,"ethereum.db")
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
         self.conn = sqlite3.connect(self.dbfile)
         self.curs = self.conn.cursor()
         self.create_tables();
@@ -85,8 +90,11 @@ class Database:
         cmd = "SELECT code FROM code where id='%s';" % codeid
         self.curs.execute(cmd)
         rows = self.curs.fetchall()
-        code = rows[0]
-        return code[0]
+        if len(rows) == 0:
+            return None
+        else:
+            assert(len(rows) == 1)
+            return code[0][0]
 
     def get_traces(self,codeid):
         cmd = "SELECT id,sender,recip,input,is_ctor FROM txns where code_id='%s';" % codeid
@@ -183,6 +191,12 @@ class Scraper:
 
     def __init__(self,db,addr):
         self.bc = Web3(IPCProvider())
+        
+        if not self.bc.isConnected():
+            print('Could not connect to IPC channel of Ethereum.')
+            print('Execute the following:\n')
+            print('  geth --rpc --rpcapi "eth,net,web3,debug" --cache=1024 --syncmode full')
+            sys.exit(1)
         self.db = db;
 
 
@@ -202,7 +216,6 @@ class Scraper:
                txn['value'],txn['input'],contract,False)
 
     def crawl_block(self,bnum):
-
         blk = self.bc.eth.getBlock(bnum)
         for txnhash in blk['transactions']:
             txn = self.bc.eth.getTransaction(txnhash)

@@ -1,4 +1,4 @@
-from opcodes import OP
+from decompiler.opcodes import OP
 
 def make_indent(n):
     return "   " * n
