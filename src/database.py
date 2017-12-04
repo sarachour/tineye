@@ -94,7 +94,7 @@ class Database:
             return None
         else:
             assert(len(rows) == 1)
-            return code[0][0]
+            return rows[0][0]
 
     def get_traces(self,codeid):
         cmd = "SELECT id,sender,recip,input,is_ctor FROM txns where code_id='%s';" % codeid
@@ -121,7 +121,7 @@ class Database:
         return rows
 
     def code_to_id(self,code):
-        hash_obj = hashlib.sha1(code)
+        hash_obj = hashlib.sha1(code.encode('utf-8'))
         hash_dig = hash_obj.hexdigest()
         return hash_dig
 
@@ -202,7 +202,17 @@ class Scraper:
 
 
     def crawl_contract(self,txn,addr):
-        contract = self.bc.eth.getCode(addr)
+        if not addr:
+            return
+
+        try:
+            contract = self.bc.eth.getCode(addr)
+        except ValueError as ve:
+            print("-> [FAIL] %s" % addr)
+            print("(%s)" % ve)
+            return
+
+
         if contract== "0x":
             return;
 

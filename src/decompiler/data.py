@@ -451,6 +451,9 @@ class Bytecode:
             return self.code[idx]
         return None
 
+    def __repr__(self):
+        return "\n".join(map(lambda x : str(x),self.code))
+
 import copy
 
 class CodeFrag:

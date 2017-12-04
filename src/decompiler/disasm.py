@@ -277,7 +277,7 @@ class EVMDisAssembler(object):
         ''' Disassemble evm bytecode to a Instruction objects '''
         def iterbytes(bytecode):
             iter_bytecode = (b for b in bytecode if b in '1234567890abcdefABCDEFx') #0x will bail below.
-            for b in itertools.izip(iter_bytecode,iter_bytecode):
+            for b in zip(iter_bytecode,iter_bytecode):
                 b = ''.join(b)
                 try:
                     yield int(b,16)

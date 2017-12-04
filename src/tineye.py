@@ -3,13 +3,18 @@ import argparse
 from database import Database,Scraper
 from paths import paths
 from retina import Retina
-from decompiler.decompile import disasm
+from decompiler.decompile import disasm,decompile
 import os
 
-def analyze_subtool(database,codeid):
+def analyze_subtool(database,codeid,do_decompile=False):
+    if codeid == None:
+        raise Exception("must specify a program id.")
 
     base_dir = "data/%s" % codeid;
     trace_dir = "%s/traces" % base_dir;
+
+    print("src-dir: %s" % base_dir)
+    print("trace-dir: %s" % trace_dir)
 
     if not os.path.exists(trace_dir):
         os.makedirs(trace_dir)
@@ -26,17 +31,18 @@ def analyze_subtool(database,codeid):
     f.close()
 
     f = open(code_file("code.byte.pretty"),'w')
-    f.write(disasm(source))
+    f.write(str(disasm(source)))
     f.close()
 
-    decompiled = decompile(source)
-    f = open(code_file("code.ir"),'w')
-    f.write(decompiled.dump());
-    f.close()
+    if do_decompile:
+        decompiled = decompile(source)
+        f = open(code_file("code.ir"),'w')
+        f.write(decompiled.dump());
+        f.close()
 
-    f = open(code_file("code.ir.pretty"),'w')
-    f.write(decompiled.pretty());
-    f.close()
+        f = open(code_file("code.ir.pretty"),'w')
+        f.write(decompiled.pretty());
+        f.close()
 
     return;
 
@@ -114,7 +120,7 @@ def __main__():
         stats_subtool(database,args.metric)
 
     elif args.tool == "traces":
-        analyze_subtool(database,args.code)
+        analyze_subtool(database,args.prog)
 
     else:
         raise Exception("unknown command: %s. try the --help tag." % args.tool)
