@@ -5,26 +5,13 @@ Tineye depends on several python packages. We recommend the following package ve
     
     web3 3.16.4
 
-
 ### Python 2.7
 `tineye` requires `python-2.7`. 
 Install the following packages with pip:
 
     pip install web3 matplotlib colormap easydev
    
-    
-### Python 3
-`tineye` has been developed with the following versions of the packages:
-
-    pip3 install web3 matplotlib colormap easydev
-    
-installing `web3` might require an upgrade of setuptools:
-    
-    pip3 install --upgrade setuptools
-    
-We recommend the following package versions.
-
-
+   
   
 ## Downloading from the Blockchain
 
@@ -34,22 +21,22 @@ First, execute the `geth` server and allow it to start.
 
 `tineye` requires the programmer specify the starting block and the number of blocks to download. By default, `tineye` stores the downloaded data in the `.db/ethereum.db`. For example, the following command downloads contracts from blocks 620,000 to 620,099.
 
-    python3 tineye.py download --start 620000 --n 100
+    python tineye.py download --start 620000 --n 100
    
    
 ## Inspecting contracts on the blockchain 
 
 The smart contracts are organized by the contract id, which is the hash of the source code. To retrieve the list of contracts, and the number transactions involving each contract, use the following command:
 
-    python3 tineye.py stats --metric usage
+    python tineye.py stats --metric usage
 
 To retrieve the list of contracts and their size, use the following command:
 
-    python3 tineye.py stats --metric size
+    python tineye.py stats --metric size
   
 To retrieve the list of contracts, and how many times the contract has been copied, use the following command:
 
-    python3 tineye.py stats --metric dups
+    python tineye.py stats --metric dups
    
 Each of these commands will return a tab-delimited list of the form:
 
@@ -65,5 +52,15 @@ Where the first number is the hash of the code, and the second number is the met
 ## Inspecting the contract code
 
 `tineye` supports retrieving the code of smart contracts. To do so, find the program id (the hash of the code) of the contract of interest, and execute the following command:
+    
+    python tineye.py analyze --prog d8f963ca3bdada6f1c1ffa36da8037bbeba83e12
+
+The resulting bytecode and traces is stored in:
+
+    .prog/ID
+    
+The `code.byte` and `code.byte.pretty` are hex and human-readable versions of the bytecode. The `traces` folder constrains the execution traces of all the transactions that use the program.
+
+
 
 

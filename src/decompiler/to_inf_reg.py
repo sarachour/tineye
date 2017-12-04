@@ -1,11 +1,11 @@
-from data import EXPRS,CodeFrag,TODO,NoArg
-from opcodes import OP
+from decompiler.data import EXPRS,CodeFrag,TODO,NoArg
+from decompiler.opcodes import OP
 
 class AbsState:
 
     def __init__(self,bytecode):
         self.stack_size = 1024;
-        self.stack = map(lambda i : EXPRS.REGVAL.make(1024-i), range(0,1024+1))
+        self.stack = list(map(lambda i : EXPRS.REGVAL.make(1024-i), range(0,1024+1)))
         self.code = bytecode;
         self.pc = 0;
         self.top_counter = 0;
@@ -200,6 +200,10 @@ class AbsExec:
                 ops2 = state.push([ml])
                 prog.emit_all(ops1 + ops2)
 
+            elif pc.name == OP.TIMESTAMP:
+                ops = state.push([EXPRS.TIMESTAMP.make()])
+                prog.emit_all(ops)
+
             elif pc.name == OP.MLOAD:
                 args,ops1 = state.pop(1);
                 siz = EXPRS.NUMBER.make(32)
@@ -351,8 +355,11 @@ class AbsExec:
                 prog.emit(EXPRS.STOP.make())
                 prog.terminate()
 
-            else:
+            elif OP.unknown(pc.name):
+                prog.emit(EXPRS.UNKNOWN.make(pc.name))
 
+            else:
+                print(str(pc))
                 raise Exception("unimpl:%s" % (repr(pc)))
             if prog.terminated:
                 continue;

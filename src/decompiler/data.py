@@ -1,4 +1,5 @@
 from decompiler.opcodes import OP
+import json
 
 def make_indent(n):
     return "   " * n
@@ -411,6 +412,7 @@ class ExprSpec:
         self.STOP = Op0("stop","stop")
         self.GETBASEREG = Op0("base_reg","reg.base")
         self.CALLER = Op0("caller","tx.caller")
+        self.TIMESTAMP = Op0("timestamp","blk.timestamp")
         self.VALUE = Op0("value","tx.value")
         self.BLOCKNUM= Op0("block_num","blk.number")
         self.MSIZE = Op0("mem_size","mem.size")
@@ -422,6 +424,7 @@ class ExprSpec:
         self.REG_LOAD = Op1("reg_load","%s")
         self.REG_DESTROY = Op1("reg_destroy","delete %s")
         self.COMMENT = Op1("comment","// %s")
+        self.UNKNOWN= Op1("unknown","<unkown opcode: %s>")
 
 EXPRS = ExprSpec()
 
@@ -627,3 +630,12 @@ class ReconstructedProgram:
 
     def add_func(self,entry_point,code):
         self.blocks[entry_point] = code
+
+
+    def pretty(self):
+        r = ""
+        for entry_point,code in self.blocks.items():
+            r += "=== %s ====\n" % entry_point
+            if code:
+                r += "%s\n" % code.pretty(1)
+        return r

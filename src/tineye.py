@@ -1,16 +1,16 @@
 import sys
 import argparse
-from database import Database,Scraper
-from paths import paths
+from base.database import Database,Scraper
+from base.paths import paths
 from retina import Retina
-from decompiler.decompile import disasm,decompile
+from decompiler.decompile import disasm,decompile,reconstruct
 import os
 
-def analyze_subtool(database,codeid,do_decompile=False):
+def analyze_subtool(database,codeid,do_decompile=True,do_reconstruct=True,do_traces=True):
     if codeid == None:
         raise Exception("must specify a program id.")
 
-    base_dir = "data/%s" % codeid;
+    base_dir = "%s/%s" % (paths.prog_dir,codeid);
     trace_dir = "%s/traces" % base_dir;
 
     print("src-dir: %s" % base_dir)
@@ -23,36 +23,41 @@ def analyze_subtool(database,codeid,do_decompile=False):
     code_file = lambda x : "%s/%s" % (base_dir,x)
     trace_file = lambda x : "%s/%s" % (trace_dir,x)
 
-    print("=== Collecting Code ===")
+    print("=== Getting Code ===")
     source = database.get_code(codeid)
 
     f = open(code_file("code.byte"),'w')
     f.write(source)
     f.close()
 
+    print("=== Disassembling ===")
     f = open(code_file("code.byte.pretty"),'w')
     f.write(str(disasm(source)))
     f.close()
 
     if do_decompile:
+        print("=== Decompiling ===")
         decompiled = decompile(source)
-        f = open(code_file("code.ir"),'w')
-        f.write(decompiled.dump());
-        f.close()
 
-        f = open(code_file("code.ir.pretty"),'w')
+        f = open(code_file("code.ir"),'w')
         f.write(decompiled.pretty());
         f.close()
 
-    return;
+        if do_reconstruct:
+            reconstructed = reconstruct(decompiled)
+
+            f = open(code_file("code.recon"),'w')
+            f.write(reconstructed.pretty());
+            f.close()
 
 
-    print("=== Collecting Traces ===")
-    txns = database.get_traces(codeid)
-    for trace in txns:
-        f = open(trace_file("%s.trace" % trace.txn),'w')
-        f.write(trace.dump())
-        f.close()
+    if do_traces:
+        print("=== Retrieving Traces ===")
+        txns = database.get_traces(codeid)
+        for trace in txns:
+            f = open(trace_file("%s.trace" % trace.txn),'w')
+            f.write(trace.dump())
+            f.close()
 
 def stats_subtool(database,metric):
     if metric == "usage":
@@ -86,10 +91,17 @@ def __main__():
     p_bootstrap.add_argument('--start', required=True,help='the starting block')
     p_bootstrap.add_argument('--n', required=True,help='the number of blocks to download')
     # trace all the executions for a unique contract
-    p_analyze = subparsers.add_parser('traces',
+    p_analyze = subparsers.add_parser('analyze',
                                       help='given the id of the program, download all of the traces.')
 
     p_analyze.add_argument('--prog', help='the identifier of the program to analyze')
+    p_analyze.add_argument('--decompile', action='store_true', default=False,
+                           help='decompile the program into entry-points and code segments.')
+    p_analyze.add_argument('--reconstruct', action='store_true', default=False,
+                           help='reconstruct the decompiled program.')
+    p_analyze.add_argument('--trace', action='store_true', default=False,
+                           help='retrieve the program traces.')
+
 
     # trace all the executions for a unique contract
     p_stats= subparsers.add_parser('stats',
@@ -119,8 +131,14 @@ def __main__():
     elif args.tool == "stats":
         stats_subtool(database,args.metric)
 
-    elif args.tool == "traces":
-        analyze_subtool(database,args.prog)
+    elif args.tool == "analyze":
+        do_decompile=args.decompile
+        do_reconstruct=args.reconstruct
+        do_traces=args.trace
+        analyze_subtool(database,args.prog,
+                        do_decompile=do_decompile,
+                        do_reconstruct=do_reconstruct,
+                        do_traces=do_traces)
 
     else:
         raise Exception("unknown command: %s. try the --help tag." % args.tool)

@@ -11,6 +11,7 @@ class Opcodes:
         self.STOP = "STOP"
         self.ADD = "ADD"
         self.MUL = "MUL"
+        self.TIMESTAMP = "TIMESTAMP"
         self.SHA3 = "SHA3"
         self.LT= "LT"
         self.SLT= "SLT"
@@ -39,6 +40,11 @@ class Opcodes:
         self.MSIZE = "MSIZE"
         self.CALLDATACOPY = "CALLDATACOPY"
         self.CALLDATALOAD = "CALLDATALOAD"
+
+    def unknown(self,name):
+        if "UNKNOWN" in name:
+            return True
+        return False
 
     def push(self,name):
         if "PUSH" in name:

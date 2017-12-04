@@ -15,7 +15,7 @@ def decompile(binary):
 
     entry_points = bytecode.entry_points()
 
-    from to_inf_reg import AbsExec
+    from decompiler.to_inf_reg import AbsExec
     abs_mach = AbsExec(bytecode)
     prog = FragmentedProgram()
 
@@ -39,7 +39,7 @@ def reconstruct(prog):
         fxn = reconstruct(prog,point)
         recon_prog.add_func(point,fxn)
 
-
+    return recon_prog 
 
 def main():
     filename = sys.argv[1]

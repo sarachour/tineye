@@ -255,7 +255,7 @@ class EVMCode(object):
 
     def _update_xrefs(self):
         # find all JUMP, JUMPI's
-        for loc, instruction in ((l,i) for l,i in self.instruction_at.iteritems() if i.name in ("JUMP","JUMPI")):
+        for loc, instruction in ((l,i) for l,i in self.instruction_at.items() if i.name in ("JUMP","JUMPI")):
             if instruction.previous and instruction.previous.name.startswith("PUSH"):
                 instruction.jumpto = int(instruction.previous.operand, 16)
                 target_instruction = self.instruction_at.get(instruction.jumpto)

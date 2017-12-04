@@ -1,5 +1,4 @@
 import json;
-from evmdasm import EVMDisAssembler
 import matplotlib as mp
 from colormap import rgb2hex
 import sys
