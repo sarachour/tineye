@@ -148,6 +148,12 @@ class AbsExec:
                 prog.emit_all(ops1)
                 prog.emit(ms)
 
+            elif pc.name == OP.CODECOPY:
+                (n,code0,mem0), ops1 = state.pop(3)
+                cc = EXPRS.CODECOPY.make(mem0,n,code0)
+                prog.emit_all(ops1)
+                prog.emit(cc)
+
             elif pc.name == OP.CALL:
                 args,ops1 = state.pop(7);
                 prog.emit_all(ops1);

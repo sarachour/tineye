@@ -20,6 +20,7 @@ class Opcodes:
         self.CALLDATASIZE = "CALLDATASIZE"
         self.EXP= "EXP"
         self.SUB = "SUB"
+        self.CODECOPY = "CODECOPY"
         self.DIV = "DIV"
         self.AND = "AND"
         self.OR = "OR"

@@ -24,6 +24,7 @@ class NoArg:
 class TODO:
 
     def __init__(self,msg):
+        self.label = 'todo:%s' % msg;
         self.kind ="todo"
         self.msg = msg
 
@@ -388,6 +389,7 @@ class ExprSpec:
         self.ARGLOAD = Op2("arg_load","args.word(%s,n=%s)")
         self.ARGSIZE= Op0("arg_load","args.size")
         self.ARG= Op1("arg","arg%s")
+        self.CODECOPY = Op3("copy_code","mem.store[%s,n=%s] := code[%s:]")
 
         self.SSTORE = Op2("disk_store","disk.store[%s] := %s")
         self.NUMBER = Op1("number","%s")
