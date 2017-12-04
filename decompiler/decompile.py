@@ -32,11 +32,11 @@ def reconstruct(prog):
     prog.print_graph()
     recon_prog = ReconstructedProgram()
 
-    from reconstruct import reconstruct
+    import reconstruct as rc
 
     for point in prog.entry_points:
         print("==== Entry Point %d ====" % point)
-        fxn = reconstruct(prog,point)
+        fxn = rc.reconstruct(prog,point)
         recon_prog.add_func(point,fxn)
 
     return recon_prog 

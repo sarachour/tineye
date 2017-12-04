@@ -275,3 +275,4 @@ def reconstruct(prog,entry):
     print("===== Reconstructing Entry ====")
     #executor = ProgramFragExecutor()
     par_block = derive_cfg(prog,entry)
+    return par_block

@@ -272,9 +272,13 @@ class Call:
     def __init__(self,label):
         self.label = label
         self.kind = "call"
+        self._overwrite_sender = True
 
     def make(self):
         return Call(self.label)
+
+    def set_overwrite_sender(self,v):
+        self._overwrite_sender = v
 
     def set_gas(self,data):
         self.gas = data;
@@ -294,7 +298,8 @@ class Call:
         self.outputs = (offset,size)
 
     def __repr__(self):
-        base = "call(%s,%s,%s)" % (self.to,self.value,self.gas)
+        ovw = "tx.addr" if self._overwrite_sender else "tx.sender"
+        base = "call[%s](%s,%s,%s)" % (ovw,self.to,self.value,self.gas)
         inps = "ins[%s,%s]" % (self.inputs[0],self.inputs[1])
         outs = "outs[%s,%s]" % (self.outputs[0],self.outputs[1])
         return "%s : %s -> %s" % (base,inps,outs)
@@ -412,10 +417,13 @@ class ExprSpec:
         self.STOP = Op0("stop","stop")
         self.GETBASEREG = Op0("base_reg","reg.base")
         self.CALLER = Op0("caller","tx.caller")
+
         self.TIMESTAMP = Op0("timestamp","blk.timestamp")
         self.VALUE = Op0("value","tx.value")
         self.BLOCKNUM= Op0("block_num","blk.number")
         self.MSIZE = Op0("mem_size","mem.size")
+        self.GAS = Op0("gas","tx.gas")
+
         self.ORIGIN = Op0("tx.origin","tx.origin")
         self.LOG = OpN("log","log(%s)")
         self.CALL = Call("call")
@@ -629,6 +637,7 @@ class ReconstructedProgram:
         self.blocks = {};
 
     def add_func(self,entry_point,code):
+        assert(code)
         self.blocks[entry_point] = code
 
 

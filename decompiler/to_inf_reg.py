@@ -159,6 +159,18 @@ class AbsExec:
                 prog.emit(call)
                 prog.emit_all(ops2)
 
+            elif pc.name == OP.CALLCODE:
+                args,ops1 = state.pop(7);
+                prog.emit_all(ops1);
+                call = EXPRS.CALL.make();
+                call.set_overwrite_sender(False)
+                call.set_gas(args[0]).set_callee(args[1]).set_value(args[2])
+                call.set_inputs(args[3],args[4])
+                call.set_outputs(args[5],args[6])
+                ops2 = state.push([TODO("return_val_for_call")])
+                prog.emit(call)
+                prog.emit_all(ops2)
+
             elif pc.name == OP.CALLVALUE:
                 ops = state.push([EXPRS.VALUE.make()])
                 prog.emit_all(ops)
@@ -202,6 +214,10 @@ class AbsExec:
 
             elif pc.name == OP.TIMESTAMP:
                 ops = state.push([EXPRS.TIMESTAMP.make()])
+                prog.emit_all(ops)
+
+            elif pc.name == OP.GAS:
+                ops = state.push([EXPRS.GAS.make()])
                 prog.emit_all(ops)
 
             elif pc.name == OP.MLOAD:
